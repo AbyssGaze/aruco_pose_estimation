@@ -84,3 +84,7 @@ target_link_libraries(aruco_pose ${PROJECT_NAME} ${PCL_LIBRARIES})
 add_executable(seg_label
 Examples/RGB-D/seg_label.cpp ${INC_ALL})
 target_link_libraries(seg_label ${PROJECT_NAME} ${PCL_LIBRARIES})
+
+add_executable(pcl_view
+Examples/RGB-D/pcl_view.cpp ${INC_ALL})
+target_link_libraries(pcl_view ${PROJECT_NAME} ${PCL_LIBRARIES})

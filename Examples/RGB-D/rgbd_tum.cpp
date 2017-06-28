@@ -95,24 +95,28 @@ int main (int argc, char** argv)
         PassThrough<PointXYZRGB> pass;
         pass.setInputCloud (cloud);
         pass.setFilterFieldName ("z");
-        pass.setFilterLimits (0.007, 0.5);
+        pass.setFilterLimits (0.009, 0.3);
         pass.filter (*cloud);
 
         pass.setInputCloud (cloud);
         pass.setFilterFieldName ("x");
-        pass.setFilterLimits (0.1, 0.5);
+        pass.setFilterLimits (0.06, 0.5);
         pass.filter (*cloud);
 
         pass.setInputCloud (cloud);
         pass.setFilterFieldName ("y");
-        pass.setFilterLimits (0.1, 0.5);
+        pass.setFilterLimits (0.06, 0.5);
         //pass.setFilterLimitsNegative (true);
         pass.filter (*cloud);
         //mask and erosion
 
         *merge += *cloud;
+        vis->removeAllPointClouds();
+        vis->addPointCloud(merge);
+        vis->spin();
 
     }
+    vis->removeAllPointClouds();
     vis->addPointCloud(merge_all);
     vis->spin();
     vis->removeAllPointClouds();
@@ -122,7 +126,7 @@ int main (int argc, char** argv)
     cout<<"statistical outlier removal begins ..."<<endl;
     StatisticalOutlierRemoval<PointXYZRGB> sor;
     sor.setInputCloud (merge);
-    sor.setMeanK (30);
+    sor.setMeanK (20);
     sor.setStddevMulThresh (1.4);
     sor.filter (*merge);
     vis->removeAllPointClouds();
@@ -198,19 +202,19 @@ int main (int argc, char** argv)
     vis->addPolygonMesh(triangles);
     vis->spin();
 
-    cout << "begin marching Poisson reconstruction" << endl;
+//    cout << "begin marching Poisson reconstruction" << endl;
 
-    Poisson<PointXYZRGBNormal> pn ;
-    pn.setSearchMethod(tree2) ;
-    pn.setInputCloud(cloud_with_normals) ;
-    pn.setConfidence(false) ;//设置置信标志，为true时，使用法线向量长度作为置信度信息，false则需要对法线进行归一化处理
-    pn.setManifold(false) ;//设置流行标志，如果设置为true，则对多边形进行细分三角话时添加重心，设置false则不添加
-    pn.setOutputPolygons(false) ;//设置是否输出为多边形
-    pn.setIsoDivide(8) ;
-    pn.setSamplesPerNode(3) ;//设置每个八叉树节点上最少采样点数目
+//    Poisson<PointXYZRGBNormal> pn ;
+//    pn.setSearchMethod(tree2) ;
+//    pn.setInputCloud(cloud_with_normals) ;
+//    pn.setConfidence(false) ;//设置置信标志，为true时，使用法线向量长度作为置信度信息，false则需要对法线进行归一化处理
+//    pn.setManifold(false) ;//设置流行标志，如果设置为true，则对多边形进行细分三角话时添加重心，设置false则不添加
+//    pn.setOutputPolygons(false) ;//设置是否输出为多边形
+//    pn.setIsoDivide(8) ;
+//    pn.setSamplesPerNode(3) ;//设置每个八叉树节点上最少采样点数目
 
-    pn.performReconstruction(triangles) ;
-    vis->removeAllPointClouds();
-    vis->addPolygonMesh(triangles);
-    vis->spin();
+//    pn.performReconstruction(triangles) ;
+//    vis->removeAllPointClouds();
+//    vis->addPolygonMesh(triangles);
+//    vis->spin();
 }

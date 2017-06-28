@@ -76,6 +76,7 @@ void pose::poseEstimation(std::vector<cv::Point3f> &src_points, std::vector<cv::
     Eigen::Vector3f t_matrix;
     cv::cv2eigen(t, t_matrix);
     trans.block<3,1>(0,3) = t_matrix;
+    trans(3,3) = 1;
 
 }
 void pose::arucoInitial(const std::string fileName)

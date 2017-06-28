@@ -1,0 +1,4 @@
+/home/cy/Projects/dataset/xtion_pro_live_0627/pcd_pose/four_object_pcd.txt
+/home/cy/Projects/dataset/xtion_pro_live_0627/pcd_pose/four_object_pose.txt
+/home/cy/Projects/dataset/xtion_pro_live_0627/pcd_pose/five_object_pcd.txt
+/home/cy/Projects/dataset/xtion_pro_live_0627/pcd_pose/five_object_pose.txt

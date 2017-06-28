@@ -97,7 +97,8 @@ void callback (const boost::shared_ptr<io::Image>& rgb, const boost::shared_ptr<
 int main (int argc, char** argv)
 {
     if(argc < 2){
-        PCL_INFO("The input arguments less than neccesary!");
+        cout << "The input arguments less than neccesary!" << endl;
+        cout << "aruco_pose ../param.ymal" << endl;
         return -1;
     }
     fb.readParams(argv[1]);
