@@ -1,0 +1,5 @@
+117
+/home/cy/Projects/dataset/labeled_0628/file_txt/nine_object_pcd.txt
+/home/cy/Projects/dataset/labeled_0628/file_txt/nine_object_pose.txt
+/home/cy/Projects/dataset/xtion_pro_0628/pcd_pose/file_txt/ten_object_pcd.txt
+/home/cy/Projects/dataset/xtion_pro_0628/pcd_pose/file_txt/ten_object_pose.txt
