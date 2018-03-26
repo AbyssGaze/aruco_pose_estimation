@@ -88,3 +88,7 @@ target_link_libraries(seg_label ${PROJECT_NAME} ${PCL_LIBRARIES})
 add_executable(pcl_view
 Examples/RGB-D/pcl_view.cpp ${INC_ALL})
 target_link_libraries(pcl_view ${PROJECT_NAME} ${PCL_LIBRARIES})
+
+add_executable(labeled_cloud_view
+Examples/RGB-D/labeled_cloud_view.cpp ${INC_ALL})
+target_link_libraries(labeled_cloud_view ${PROJECT_NAME} ${PCL_LIBRARIES})

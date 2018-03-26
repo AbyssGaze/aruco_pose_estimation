@@ -13,15 +13,25 @@ using namespace std;
 using namespace cv;
 using namespace pcl;
 
+
 poseEstimate::feature fb;
 
 int num = 0;
+
 Eigen::Matrix4f trans, old_trans;
+
 Eigen::Vector3f euler_angles, euler_angles_old, t_old, t;
+
+//! Current rotation matrix and old rotation matrix
 Eigen::Matrix3f rotation_matrix, rotation_matrix_old;
+
+//! Input: depth file path with name...
 stringstream depth_file, rgb_file, pose_file;
+
+//! To save depth png file
 vector<int> params;
 
+//!
 void callback (const boost::shared_ptr<io::Image>& rgb, const boost::shared_ptr<io::DepthImage>& depth, float constant)
 {
     int sizes[2] = {480, 640};
@@ -87,10 +97,6 @@ void callback (const boost::shared_ptr<io::Image>& rgb, const boost::shared_ptr<
             }
         }
     }
-//    else{
-//        cout << "please put the artag insight" << endl;
-//    }
-
 
 }
 
@@ -101,6 +107,7 @@ int main (int argc, char** argv)
         cout << "aruco_pose ../param.ymal" << endl;
         return -1;
     }
+    ///read parameters
     fb.readParams(argv[1]);
     fb.createBoard();
 

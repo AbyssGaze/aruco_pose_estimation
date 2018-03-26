@@ -30,6 +30,9 @@
 *.exe
 *.out
 *.app
-
+*.user
+*.~
 #floder
 build/*
+html/*
+.idea/*

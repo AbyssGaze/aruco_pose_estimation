@@ -42,6 +42,7 @@ int main (int argc, char** argv)
         string file;
         string name;
         index >> file;
+        std::cout << file << endl;
         if (file.empty ())
           break;
 
@@ -66,6 +67,7 @@ int main (int argc, char** argv)
         trans(3,3) = 1;
         trans_inv = trans.inverse();
         //convert depth to cloud
+        //
         PointCloud<PointXYZRGB>::Ptr cloud(new PointCloud<PointXYZRGB>);
 
         for (int y = 0; y < depth_mat.rows; ++y)

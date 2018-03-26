@@ -79,63 +79,6 @@ void pose::poseEstimation(std::vector<cv::Point3f> &src_points, std::vector<cv::
     trans(3,3) = 1;
 
 }
-void pose::arucoInitial(const std::string fileName)
-{
-    cv::FileStorage fs(fileName, cv::FileStorage::READ);
 
-    fs["cameraMatrix"] >> camera_matrics_;
-    fs["distCoeffs"] >> camera_dist_coffs_;
-    fs["captureNum"] >> total_capture_frame_;
-    fs["distanceThresh"] >> distance_tresh_;
-    fs["corners_x"] >> corners_x_;
-    fs["corners_y"] >> corners_y_;
-    fs.release();
-
-    dictionary_ = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
-    //marker length
-    double length = 0.065;
-    std::vector<int> ids_vec;
-    //marker left up corner coordinate
-    std::vector<double> corners_x = {0, 0.08, 0.16, 0.24, 0.32, 0.40, 0.48, 0, 0.08, 0.16, 0.24, 0.32, 0.40, 0.48, 0, 0, 0, 0, 0, 0.48, 0.48, 0.48, 0.48, 0.48};
-    std::vector<double> corners_y = {0, 0, 0, 0, 0, 0, 0, 0.48, 0.48, 0.48, 0.48, 0.48, 0.48, 0.48, 0.08, 0.16, 0.24, 0.32, 0.40, 0.08, 0.16, 0.24, 0.32, 0.40};
-
-    //CCW order is important
-    //here we order the four corners for:left up, left bottom, right bottom and right up
-    for(unsigned i = 0; i < corners_x.size(); ++i){
-        std::vector<cv::Point3f> marker_corners(4, cv::Point3f(0, 0, 0));
-        marker_corners[0].x = corners_x[i];
-        marker_corners[0].y = corners_y[i];
-        marker_corners[1].x = corners_x[i];
-        marker_corners[1].y = corners_y[i] + length;
-        marker_corners[2].x = corners_x[i] + length;
-        marker_corners[2].y = corners_y[i] + length;
-        marker_corners[3].x = corners_x[i] + length;
-        marker_corners[3].y = corners_y[i];
-        corners_.push_back(marker_corners);
-        ids_vec.push_back(i + 1);
-    }
-
-    // create the board
-    board_ptr_ = cv::aruco::Board::create(corners_, dictionary_, ids_vec);
-}
-
-void pose::markerDetect(const cv::Mat rgb_mat, const cv::Mat depth_mat, std::vector<cv::Point3f> &cornersVec)
-{
-    cv::Mat image_copy = rgb_mat.clone();
-    std::vector<int> ids;
-    std::vector<std::vector<cv::Point2f>> corners;
-
-    cv::aruco::detectMarkers(image_copy, dictionary_, corners, ids);
-
-    if(ids.size() > 10){
-        cv::aruco::drawDetectedMarkers(image_copy, corners, ids);
-    }
-}
-
-void pose::projection(cv::Mat depth_map, cv::Point2f uv, cv::Point3f &xyz)
-{
-    xyz.z = depth_map.at<ushort>(uv.x, uv.y);
-
-}
 }
 
