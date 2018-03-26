@@ -13,15 +13,25 @@ using namespace std;
 using namespace cv;
 using namespace pcl;
 
+
 poseEstimate::feature fb;
 
 int num = 0;
+
 Eigen::Matrix4f trans, old_trans;
+
 Eigen::Vector3f euler_angles, euler_angles_old, t_old, t;
+
+//! Current rotation matrix and old rotation matrix
 Eigen::Matrix3f rotation_matrix, rotation_matrix_old;
+
+//! Input: depth file path with name...
 stringstream depth_file, rgb_file, pose_file;
+
+//! To save depth png file
 vector<int> params;
 
+//! Callback function get depth and rgb frame and compute artag pose
 void callback (const boost::shared_ptr<io::Image>& rgb, const boost::shared_ptr<io::DepthImage>& depth, float constant)
 {
     int sizes[2] = {480, 640};
@@ -37,7 +47,7 @@ void callback (const boost::shared_ptr<io::Image>& rgb, const boost::shared_ptr<
     vector<int> ids;
     bool valid = fb.arucoDetect(rgb_mat, depth_mat, ids, corners, trans);
     if(valid){
-        if(num == 0)
+        if(num == 0)//initial frame
         {
             old_trans = trans;
             num++;
@@ -51,12 +61,12 @@ void callback (const boost::shared_ptr<io::Image>& rgb, const boost::shared_ptr<
         }
         else
         {
-            //save depth and rgb mat中y轴旋转一定角度或者平移一定距离
+            //save depth and rgb mat when y axis translation than a threshold
             rotation_matrix = trans.block<3,3>(0,0);
             t = trans.block<3,1>(0,3);
-            euler_angles = rotation_matrix.eulerAngles(2,1,0);//zyx顺序，roll pitch yaw顺序
+            euler_angles = rotation_matrix.eulerAngles(2,1,0);//zyx sequence，roll pitch yaw sequence
 
-            if(abs(euler_angles[1] - euler_angles_old[1])>0.3 || (t - t_old).norm() > 0.2)//0.3弧度和0.2米
+            if(abs(euler_angles[1] - euler_angles_old[1])>0.3 || (t - t_old).norm() > 0.2)//0.3 radian and 0.2 meters
             {
                 cout << "---------------------EULER-------------------" << endl;
                 cout << "error:   " << abs(euler_angles[1] - euler_angles_old[1]) << endl;
@@ -69,7 +79,7 @@ void callback (const boost::shared_ptr<io::Image>& rgb, const boost::shared_ptr<
                 t_old = t;
                 euler_angles_old = euler_angles;
 
-                //保存对应的位姿、深度图和rgb图
+                //save pose, depth mat and rgb mat
                 rgb_file.str("");
                 depth_file.str("");
                 pose_file.str("");
@@ -87,10 +97,6 @@ void callback (const boost::shared_ptr<io::Image>& rgb, const boost::shared_ptr<
             }
         }
     }
-//    else{
-//        cout << "please put the artag insight" << endl;
-//    }
-
 
 }
 
@@ -101,6 +107,7 @@ int main (int argc, char** argv)
         cout << "aruco_pose ../param.ymal" << endl;
         return -1;
     }
+    ///read parameters
     fb.readParams(argv[1]);
     fb.createBoard();
 

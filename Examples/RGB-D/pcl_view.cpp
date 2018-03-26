@@ -1,3 +1,5 @@
+
+
 #include <iostream>
 #include <fstream>
 
@@ -8,13 +10,16 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/registration/transforms.h>
 #include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/console/parse.h>
 
 using namespace std;
 using namespace pcl;
 using namespace cv;
 
+
 #define READ_TRANS(TRANS, NAME) {Eigen::Matrix4f tmp_trans; ifstream(NAME.c_str(), std::ifstream::in | ifstream::binary).read((char*)tmp_trans.data(), 4 * 4 * sizeof(float)); (TRANS) = tmp_trans;}
 
+//! camera instrincs
 double FOCAL_X = 558.341390;
 double FOCAL_Y = 558.387543;
 double CX = 314.763671;
@@ -22,16 +27,30 @@ double CY = 240.992295;
 
 int main(int argc, char **argv)
 {
+    if(argc < 2)
+    {
+        cout << "you need put :" << endl;
+        cout << "./pcl_view ../input.txt" << endl;
+        return 1;
+    }
     // read the rgb-d data one by one
     ifstream index;
+    int num = 0;
+
+//    if(pcl::console::parse(argc, argv, "-u", num))
+//        cout << "the start num is:" << num << endl;
+
+
     string root_dir = argv[1];
+
     index.open ((root_dir).c_str());
     visualization::PCLVisualizer::Ptr vis(new visualization::PCLVisualizer);
     stringstream pcd_file, pose_file;
 
     vis->addCoordinateSystem(0.2);
-    int num = 0;
-    //从rgb图像中获取对应的特征点的3d和2d坐标
+
+    //get features 3d coordinate and 2d coordinate from rgb image
+    index >> num;
     while (!index.eof ())
     {
         PointCloud<PointXYZRGBL>::Ptr cloud(new PointCloud<PointXYZRGBL>);
@@ -51,7 +70,7 @@ int main(int argc, char **argv)
         name = file + ".png";
         depth_mat = imread(name, -1);
 
-        //产生mask区域
+        //generate mask regions
         string pose_name = file+".tra";
         Eigen::Matrix4f trans, trans_inv;
         READ_TRANS(trans, pose_name);
@@ -83,8 +102,8 @@ int main(int argc, char **argv)
         pcd_file.str("");
         pose_file.str("");
 
-        pcd_file << "/home/cy/Projects/dataset/xtion_pro_live_0627/pcd_pose/xtion_pro_live_0627_" << setw( 5 ) << setfill( '0' ) << num << ".pcd";
-        pose_file << "/home/cy/Projects/dataset/xtion_pro_live_0627/pcd_pose/xtion_pro_live_0627_" << setw( 5 ) << setfill( '0' ) << num << ".tra";
+        pcd_file << "/home/cy/Projects/dataset/xtion_pro_0628/pcd_pose/xtion_pro_live_0628_" << setw( 5 ) << setfill( '0' ) << num << ".pcd";
+        pose_file << "/home/cy/Projects/dataset/xtion_pro_0628/pcd_pose/xtion_pro_live_0628_" << setw( 5 ) << setfill( '0' ) << num << ".tra";
         num ++;
         io::savePCDFile<PointXYZRGBL> (pcd_file.str(), *cloud, true);
 

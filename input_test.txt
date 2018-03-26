@@ -1,0 +1,17 @@
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00117.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00118.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00119.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00120.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00121.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00122.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00123.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00124.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00125.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00126.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00127.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00128.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00129.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00130.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00131.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00132.pcd
+/home/cy/Projects/dataset/labeled_0628/ten_object/xtion_pro_live_0628_00133.pcd

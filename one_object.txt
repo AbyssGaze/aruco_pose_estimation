@@ -1,0 +1,17 @@
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00001
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00002
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00003
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00004
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00005
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00006
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00007
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00008
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00009
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00010
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00011
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00012
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00013
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00014
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00015
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00016
+/home/cy/Projects/dataset/xtion_pro_0628/one_object/xtion_pro_live_box_1_00017

@@ -36,12 +36,12 @@ int main (int argc, char** argv)
 
     vis->addCoordinateSystem(0.2);
 
-    //从rgb图像中获取对应的特征点的3d和2d坐标
     while (!index.eof ())
     {
         string file;
         string name;
         index >> file;
+        std::cout << file << endl;
         if (file.empty ())
           break;
 
@@ -66,6 +66,7 @@ int main (int argc, char** argv)
         trans(3,3) = 1;
         trans_inv = trans.inverse();
         //convert depth to cloud
+        //
         PointCloud<PointXYZRGB>::Ptr cloud(new PointCloud<PointXYZRGB>);
 
         for (int y = 0; y < depth_mat.rows; ++y)
@@ -122,7 +123,8 @@ int main (int argc, char** argv)
     vis->removeAllPointClouds();
     vis->addPointCloud(merge);
     vis->spin();
-    //对merge的点云进行处理
+
+    //statistical outlier removal
     cout<<"statistical outlier removal begins ..."<<endl;
     StatisticalOutlierRemoval<PointXYZRGB> sor;
     sor.setInputCloud (merge);
@@ -154,7 +156,7 @@ int main (int argc, char** argv)
     vf.setLeafSize (0.001, 0.001, 0.001);
     vf.filter (*cloud_mls);
 
-    //完成mesh的构建
+    //Generate mesh model
     NormalEstimationOMP<PointXYZRGB, Normal> ne;
     search::KdTree<PointXYZRGB>::Ptr tree1 (new search::KdTree<PointXYZRGB>);
     tree1->setInputCloud (cloud_mls);
@@ -179,42 +181,27 @@ int main (int argc, char** argv)
 //    mc.setInputCloud (cloud_with_normals);
 //    mc.setSearchMethod (tree2);
 //    mc.reconstruct (*triangles);
-    GreedyProjectionTriangulation<PointXYZRGBNormal> gp3;   //定义三角化对象
-    pcl::PolygonMesh triangles;                //存储最终三角化的网络模型
+    GreedyProjectionTriangulation<PointXYZRGBNormal> gp3;
+    pcl::PolygonMesh triangles;                //save traingles mesh
 
     // Set the maximum distance between connected points (maximum edge length)
-    gp3.setSearchRadius (0.05);  //设置连接点之间的最大距离，（即是三角形最大边长）
+    gp3.setSearchRadius (0.05);  //set points connection maximum distance
 
-    // 设置各参数值
-    gp3.setMu (2.5);  //设置被样本点搜索其近邻点的最远距离为2.5，为了使用点云密度的变化
-    gp3.setMaximumNearestNeighbors (100);    //设置样本点可搜索的邻域个数
-    gp3.setMaximumSurfaceAngle(M_PI/4); // 设置某点法线方向偏离样本点法线的最大角度45
-    gp3.setMinimumAngle(M_PI/18); // 设置三角化后得到的三角形内角的最小的角度为10
-    gp3.setMaximumAngle(2*M_PI/3); // 设置三角化后得到的三角形内角的最大角度为120
-    gp3.setNormalConsistency(false);  //设置该参数保证法线朝向一致
+    // set parameters
+    gp3.setMu (2.5);  //set neighbours maximum distance tobe 2.5
+    gp3.setMaximumNearestNeighbors (100);
+    gp3.setMaximumSurfaceAngle(M_PI/4); // set point normal deviation to sample maximum angle is 45
+    gp3.setMinimumAngle(M_PI/18); // set triangles minimum angle is 10
+    gp3.setMaximumAngle(2*M_PI/3); // set triangles maximum angle is 120
+    gp3.setNormalConsistency(false);  //set normal to be the same orientation
 
     // Get result
-    gp3.setInputCloud (cloud_with_normals);     //设置输入点云为有向点云
-    gp3.setSearchMethod (tree2);   //设置搜索方式
-    gp3.reconstruct (triangles);  //重建提取三角化
+    gp3.setInputCloud (cloud_with_normals);     //set cloud type with normal
+    gp3.setSearchMethod (tree2);   //set search method
+    gp3.reconstruct (triangles);  //reconstruction with triangles
 
     vis->removeAllPointClouds();
     vis->addPolygonMesh(triangles);
     vis->spin();
 
-//    cout << "begin marching Poisson reconstruction" << endl;
-
-//    Poisson<PointXYZRGBNormal> pn ;
-//    pn.setSearchMethod(tree2) ;
-//    pn.setInputCloud(cloud_with_normals) ;
-//    pn.setConfidence(false) ;//设置置信标志，为true时，使用法线向量长度作为置信度信息，false则需要对法线进行归一化处理
-//    pn.setManifold(false) ;//设置流行标志，如果设置为true，则对多边形进行细分三角话时添加重心，设置false则不添加
-//    pn.setOutputPolygons(false) ;//设置是否输出为多边形
-//    pn.setIsoDivide(8) ;
-//    pn.setSamplesPerNode(3) ;//设置每个八叉树节点上最少采样点数目
-
-//    pn.performReconstruction(triangles) ;
-//    vis->removeAllPointClouds();
-//    vis->addPolygonMesh(triangles);
-//    vis->spin();
 }

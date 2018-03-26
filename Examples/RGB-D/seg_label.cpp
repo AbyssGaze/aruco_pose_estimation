@@ -30,17 +30,21 @@
 using namespace std;
 using namespace pcl;
 using namespace cv;
+
+//! read frame pose from file
 #define READ_TRANS(TRANS, NAME) {Eigen::Matrix4f tmp_trans; ifstream(NAME.c_str(), std::ifstream::in | ifstream::binary).read((char*)tmp_trans.data(), 4 * 4 * sizeof(float)); (TRANS) = tmp_trans;}
 
 typedef PointXYZRGBL PointT;
 typedef visualization::PointCloudColorHandlerCustom<PointT> ColorHandlerT;
 
+//! camera intrinsic
 double fx = 558.341390;
 double fy = 558.387543;
 double cx = 314.763671;
 double cy = 240.992295;
 set<int> label_set;
 
+//! Convert point cloud to depth mat
 Mat convert2Map(PointCloud<PointT>::Ptr cloud){
     Mat resultMat = Mat::zeros(480, 640, CV_8UC1);
     for(unsigned i = 0; i < cloud->points.size(); ++i){
@@ -55,6 +59,7 @@ Mat convert2Map(PointCloud<PointT>::Ptr cloud){
     return resultMat;
 }
 
+//! Convert point cloud to depth mat
 Mat convert2Map(PointCloud<PointXYZL>::Ptr cloud){
     Mat resultMat = Mat::zeros(480, 640, CV_8UC1);
     for(unsigned i = 0; i < cloud->points.size(); ++i){
@@ -69,6 +74,7 @@ Mat convert2Map(PointCloud<PointXYZL>::Ptr cloud){
     return resultMat;
 }
 
+//! Convert PointXYZL cloud to vector cloud, different vectord coresponding to different label
 void convertLabledCloud2Vec(PointCloud<PointT>::Ptr cloud, vector<PointCloud<PointT>::Ptr>& cloud_vec){
     for(unsigned i = 0; i < cloud->points.size(); ++i){
         int label = cloud->points[i].label;
@@ -85,7 +91,7 @@ void convertLabledCloud2Vec(PointCloud<PointT>::Ptr cloud, vector<PointCloud<Poi
     }
 }
 
-
+//! Convert PointXYZL cloud to vector cloud, different vectord coresponding to different label
 void convertLabledCloud2Vec(PointCloud<PointXYZL>::Ptr cloud, vector<PointCloud<PointXYZL>::Ptr>& cloud_vec){
 
     for(unsigned i = 0; i < cloud->points.size(); ++i){
@@ -103,6 +109,11 @@ void convertLabledCloud2Vec(PointCloud<PointXYZL>::Ptr cloud, vector<PointCloud<
     }
 }
 
+/**\brief Compute overlap ratio between src mat and tag vector, and return the max ratio index.
+ * \param[in] src
+ * \param[in] tag a list mask vector
+ * \return max ratio index
+ * */
 int computeOverlap(Mat src, vector<Mat> tag){
     double ratio = 0;
     int index = 0;
@@ -144,16 +155,20 @@ static bool cmp(pair<int, int> a, pair<int, int> b){
     return a.second > b.second;
 }
 
+/**\brief Supervoxel segmentation.
+ * \param[in] cloud you need to segment
+ * \param[out] seg_cloud supervoxel segmentation result
+ * */
 void superVoxleSeg(PointCloud<PointT>::Ptr &cloud, PointCloud<PointXYZL>::Ptr &seg_cloud){
-    float voxel_resolution = 0.008f;
+    float voxel_resolution = 0.005f;
 
-    float seed_resolution = 0.03f;
+    float seed_resolution = 0.04f;
 
-    float color_importance = 0.2f;
+    float color_importance = 0.8f;
 
     float spatial_importance = 0.4f;
 
-    float normal_importance = 1.0f;
+    float normal_importance = 1.5f;
 
     SupervoxelClustering<PointXYZRGB> super (voxel_resolution, seed_resolution);
 //   super.setUseSingleCameraTransform (false);
@@ -165,13 +180,15 @@ void superVoxleSeg(PointCloud<PointT>::Ptr &cloud, PointCloud<PointXYZL>::Ptr &s
 
     PointCloud<PointXYZRGB>::Ptr cloud_copy(new PointCloud<PointXYZRGB>);
     copyPointCloud(*cloud, *cloud_copy);
-    ///超体像素分割///
+
+    ///supervoxel segmentation///
     console::print_highlight ("Extracting supervoxels!\n");
     super.setInputCloud (cloud_copy);
     super.extract (supervoxel_clusters);
     seg_cloud = super.getLabeledCloud();
 }
 
+//! Cloud filter
 void cloudPassFilter(PointCloud<PointT>::Ptr& cloud){
 
     PassThrough<PointT> pass;
@@ -198,6 +215,7 @@ void cloudPassFilter(PointCloud<PointT>::Ptr& cloud){
 //    sor.filter (*cloud);
 }
 
+//! Convert cloud to different type dataset structure
 void cloudRenderMat(PointCloud<PointT>::Ptr cloud, vector<vector<pair<double, int>>> &cloud_vec){
     cloud_vec.resize(307200);
     for(unsigned i = 0; i < cloud->points.size(); ++i){
@@ -214,8 +232,9 @@ void cloudRenderMat(PointCloud<PointT>::Ptr cloud, vector<vector<pair<double, in
     }
 }
 
+//! Convert cloud to different type dataset structure
 void cloudRenderMatch(PointCloud<PointT>::Ptr &cloud, vector<vector<pair<double, int>>> cloud_vec){
-//    //计算法向量这块
+//    //compute normal
 //    PointCloud <Normal>::Ptr normals(new pcl::PointCloud <Normal>);
 //    search::Search<PointT>::Ptr tree = boost::shared_ptr<search::Search<PointT> >(new search::KdTree<PointT>);
 
@@ -244,6 +263,12 @@ void cloudRenderMatch(PointCloud<PointT>::Ptr &cloud, vector<vector<pair<double,
     }
 }
 
+/**\brief Supervoxel segmentation.
+ * \param[in] v1 one normal
+ * \param[in] v2 another normal
+ * \param[in] in_degree result is degree or angle model
+ * \return normals angle
+ * */
 double getAngle3D(Eigen::Vector3f &v1, Eigen::Vector3f &v2, const bool in_degree)
 {
     // Compute the actual angle
@@ -255,139 +280,18 @@ double getAngle3D(Eigen::Vector3f &v1, Eigen::Vector3f &v2, const bool in_degree
 //    std::cout << "[" << v1 << "], ["<< v2 << "], " << acos(rad) << std::endl;
     return (in_degree ? acos(rad) * 180.0 / M_PI : acos(rad));
 }
-bool convexJudge(const PointT &source_point, const PointT &target_point,const Eigen::Vector3f &source_normal,const Eigen::Vector3f &target_normal)
-{
-//    Eigen::Vector3f source_normal(source_point_normal.normal_x, source_point_normal.normal_y, source_point_normal.normal_z);
-//    Eigen::Vector3f target_normal(target_point_normal.normal_x, target_point_normal.normal_y, target_point_normal.normal_z);
 
-
-    Eigen::Vector3f source_centroid(source_point.x, source_point.y, source_point.z);
-    Eigen::Vector3f target_centroid(target_point.x, target_point.y, target_point.z);
-    Eigen::Vector3f source_normal_normalized, target_normal_normalized;
-
-    source_normal_normalized = source_normal.normalized();
-    target_normal_normalized = target_normal.normalized();
-
-    bool is_convex = true;
-    //bool is_smooth = true;
-
-    float normal_angle = getAngle3D(source_normal_normalized, target_normal_normalized, true);
-    //  Geometric comparisons
-    Eigen::Vector3f vec_t_to_s, vec_s_to_t;
-
-    vec_t_to_s = source_centroid - target_centroid;
-    vec_s_to_t = -vec_t_to_s;
-
-    Eigen::Vector3f ncross;
-    ncross = source_normal_normalized.cross(target_normal_normalized);
-
-    // Sanity Criterion: Check if definition convexity/concavity makes sense for connection of given patches
-    float intersection_angle = getAngle3D(ncross, vec_t_to_s, true);
-    float min_intersect_angle = (intersection_angle < 90.) ? intersection_angle : 180. - intersection_angle;
-    //std::cout << "min_intersect_angle" << min_intersect_angle << "--normal_angle:" << normal_angle << std::endl;
-    float intersect_thresh = 60. * 1. / (1. + exp(-0.25 * (normal_angle - 25.)));
-    if (min_intersect_angle < intersect_thresh)
-    {
-        //std::cout<< "Concave/Convex not defined for given case!" << std::endl;
-        is_convex &= false;
-    }
-
-
-    // vec_t_to_s is the reference direction for angle measurements
-    // Convexity Criterion: Check if connection of patches is convex. If this is the case the two supervoxels should be merged.
-    if ((getAngle3D(vec_t_to_s, source_normal_normalized, true) - getAngle3D(vec_t_to_s, target_normal_normalized, true)) < 20.0)
-    {
-        is_convex &= true;  // connection convex
-    }
-    else
-    {
-        is_convex &= (normal_angle < 20.);  // concave connections will be accepted  if difference of normals is small
-    }
-    return is_convex;
-}
-void cloudRegionGrowing(PointCloud<PointT>::Ptr &cloud){
-    PointCloud <Normal>::Ptr normals(new pcl::PointCloud <Normal>);
-    search::Search<PointT>::Ptr tree = boost::shared_ptr<search::Search<PointT> >(new search::KdTree<PointT>);
-
-    NormalEstimation<PointT, Normal> normal_estimator;
-    normal_estimator.setSearchMethod(tree);
-    normal_estimator.setInputCloud(cloud);
-    normal_estimator.setKSearch(100);
-    normal_estimator.compute(*normals);
-
-    //uncluster merge
-    PointCloud<PointT>::Ptr clustered_cloud(new PointCloud<PointT>);
-    PointCloud <Normal>::Ptr clustered_normals(new pcl::PointCloud <Normal>);
-
-    PointCloud<PointT>::Ptr uncluster_cloud(new PointCloud<PointT>);
-    PointCloud <Normal>::Ptr uncluster_normals(new pcl::PointCloud <Normal>);
-
-    for(unsigned i = 0; i < cloud->points.size(); ++i){
-        if(cloud->points[i].label == 0){
-            uncluster_cloud->points.push_back(cloud->points[i]);
-            uncluster_normals->points.push_back(normals->points[i]);
-        }
-        else{
-            clustered_cloud->points.push_back(cloud->points[i]);
-            clustered_normals->points.push_back(normals->points[i]);
-        }
-    }
-//    cout << uncluster_cloud->points[0].x << ", " << uncluster_cloud->points[0].y << ", " << uncluster_cloud->points[0].z << endl;
-
-    KdTreeFLANN<PointT> clusters_kdtree;
-    clusters_kdtree.setInputCloud(clustered_cloud);
-    vector<pair<int, int>> label_cnt={{0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0}};
-//    int cnt = 0;
-    for(unsigned i = 0; i < uncluster_cloud->points.size(); ++i){
-        vector<int> cluster_indices;
-        vector<float> cluster_dis;
-        clusters_kdtree.nearestKSearch(uncluster_cloud->points[i], 100, cluster_indices, cluster_dis);
-        flipNormalTowardsViewpoint(uncluster_cloud->points[i], 0, 0, 0, uncluster_normals->points[i].normal_x, uncluster_normals->points[i].normal_y, uncluster_normals->points[i].normal_z);
-        Eigen::Vector3f source_normal(uncluster_normals->points[i].normal_x, uncluster_normals->points[i].normal_y, uncluster_normals->points[i].normal_z);
-
-        for(unsigned j = 0; j < cluster_indices.size(); ++j){
-            //法向量
-            if(cluster_dis[j] < 0.0002){
-                flipNormalTowardsViewpoint(clustered_cloud->points[cluster_indices[j]], 0, 0, 0, clustered_normals->points[cluster_indices[j]].normal_x, clustered_normals->points[cluster_indices[j]].normal_y, clustered_normals->points[cluster_indices[j]].normal_z);
-                Eigen::Vector3f target_normal(clustered_normals->points[cluster_indices[j]].normal_x, clustered_normals->points[cluster_indices[j]].normal_y, clustered_normals->points[cluster_indices[j]].normal_z);
-                if ((getAngle3D(source_normal, target_normal, true) < 20) || convexJudge(uncluster_cloud->points[i], clustered_cloud->points[cluster_indices[j]], source_normal, target_normal))
-                    label_cnt[clustered_cloud->points[cluster_indices[j]].label].second++;
-//                if(cnt++ < 10)
-//                    cout << clustered_cloud->points[cluster_indices[j]].x << ", " << clustered_cloud->points[cluster_indices[j]].y << ", " << clustered_cloud->points[cluster_indices[j]].z << ", dis: " << cluster_dis[j] << endl;
-            }
-        }
-        sort(label_cnt.begin(), label_cnt.end(), cmp);
-
-        if(label_cnt[0].second > 50)
-            uncluster_cloud->points[i].label = label_cnt[0].first;
-        label_cnt={{0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0}};
-    }
-    cloud->points.clear();
-    *cloud = *clustered_cloud + *uncluster_cloud;
-}
-
-void ICPtrans(PointCloud<PointT>::Ptr &cloud_src, PointCloud<PointT>::Ptr &cloud_tag, Eigen::Matrix4f &trans){
-    IterativeClosestPoint<PointT, PointT> icp;
-    icp.setInputSource(cloud_src);
-    icp.setInputTarget(cloud_tag);
-    PointCloud<PointT> Final;
-    icp.align(Final);
-    cout << "has converged:" << icp.hasConverged() << " score: " <<
-    icp.getFitnessScore() << std::endl;
-    cout << icp.getFinalTransformation() << endl;
-    trans = icp.getFinalTransformation();
-    transformPointCloud (*cloud_tag, *cloud_tag, trans);
-}
 
 int main(int argc, char** argv){
     if (argc < 2)
     {
         PCL_INFO ("This is a utility program meant to render a mesh from a TSDF Volume, which can be saved to disk via TSDFVolumeOctree::save(const std::string &filename).\n");
-        PCL_INFO ("Usage: %s ../one_object/one_object_cloud.txt ../one_object/one_object_pose.txt ../two_object/two_object_cloud.txt ../two_object/two_object_cloud.txt", argv[0]);
+        PCL_INFO ("Usage: %s ../input_label.txt", argv[0]);
         return (1);
     }
     ifstream infoFile(argv[1], ifstream::in);
-
+    int cnt_id = 0;
+    infoFile >> cnt_id;
     string cloudFileStr, poseFileStr, labelCloudStr, labelPoseStr;
     infoFile >> cloudFileStr >> poseFileStr >> labelCloudStr >> labelPoseStr;
     //read file
@@ -412,6 +316,7 @@ int main(int argc, char** argv){
     visualization::PCLVisualizer::Ptr vis(new visualization::PCLVisualizer);
     vis->addCoordinateSystem(0.1);
     //将已完成标记的点云读入，并将其合并到Merged，构建好全局model
+    int model_id = 0;
     while(cloudFile >> cloudFileName && poseFile >> poseFileName)
     {
         READ_TRANS(trans, poseFileName);
@@ -419,6 +324,13 @@ int main(int argc, char** argv){
         if(io::loadPCDFile<PointT>(cloudFileName, *cloud) == -1){
             cout << "The cloud name is wrong!" << endl;
             break;
+        }
+        if(model_id++ < 10)
+        {
+            for(unsigned i = 0; i < cloud->points.size(); ++i)
+            {
+                cloud->points[i].label = cloud->points[i].label + 4;
+            }
         }
 //        trans(3,3) = 1;
 //        Eigen::Matrix4f trans_inv = trans.inverse();
@@ -433,32 +345,6 @@ int main(int argc, char** argv){
 //        vis->spin ();
     }
 
-    //对model进行处理
-//    StatisticalOutlierRemoval<PointT> sor;
-//    sor.setInputCloud (merged);
-//    sor.setMeanK (20);
-//    sor.setStddevMulThresh (1.4);
-//    sor.filter (*model);
-
-    //
-    cout<<"moving least square begins ..."<<endl;
-
-//    search::KdTree<PointT>::Ptr tree (new search::KdTree<PointT>);
-//    // Output has the PointNormal type in order to store the normals calculated by MLS
-//    MovingLeastSquares<PointT, PointT> mls;
-//    mls.setComputeNormals (true);
-//    mls.setInputCloud (merged);
-//    mls.setPolynomialFit (true);
-//    mls.setSearchMethod (tree);
-//    mls.setSearchRadius (0.01);
-//    mls.process (*model);
-    //对model进行降采样
-//    VoxelGrid<PointT> sor;
-//    sor.setLeafSize(0.001f, 0.001f, 0.001f);
-//    sor.setInputCloud(model);
-//    sor.filter(*model);
-
-    int cnt_id = 0;
     while(labelCloud >> labelCloudFileName && labelPose >> labelPoseFileName){
         //读取待标记的点云
         if(io::loadPCDFile<PointT>(labelCloudFileName, *cloud) == -1){
@@ -469,15 +355,13 @@ int main(int argc, char** argv){
         Eigen::Matrix4f trans_inverse = trans.inverse();
 
         transformPointCloud (*cloud, *cloud, trans);
-        //原始位姿的逆
 
-        //完成点云的滤波
+
         cloudPassFilter(cloud);
 
-        //将点云从artag板的视角恢复到相机的视角
+        //convert cloud view point from artag coordinate to camera coordinate
         transformPointCloud (*cloud, *cloud, trans_inverse);
         transformPointCloud (*model, *model, trans_inverse);
-//        ICPtrans(cloud, model, trans_inverse);
 
         vis->removeAllPointClouds();
         vis->addPointCloud (cloud, ColorHandlerT (cloud, 0.0, 255.0, 0.0), "scene");
@@ -500,14 +384,7 @@ int main(int argc, char** argv){
         vis->setPointCloudRenderingProperties (visualization::PCL_VISUALIZER_OPACITY,0.8, "labeled voxels");
 
         vis->spin ();
-        cloudRegionGrowing(cloud);
-        copyPointCloud(*cloud, *cloud_copy);
 
-        vis->removeAllPointClouds();
-        vis->addPointCloud (cloud_copy, "labeled voxels");
-        vis->setPointCloudRenderingProperties (visualization::PCL_VISUALIZER_OPACITY,0.8, "labeled voxels");
-
-        vis->spin ();
         //超体像素分割后，统计每个voxel中的点的label来完成标记
         PointCloud<PointXYZL>::Ptr cloud_seg(new PointCloud<PointXYZL>);
         superVoxleSeg(cloud, cloud_seg);
@@ -561,10 +438,10 @@ int main(int argc, char** argv){
             cin >> key;
             if(key == 's'){
                 pcd_file.str("");
-                pcd_file << "/home/cy/Projects/dataset/labeled/xtion_pro_live_0627_" << setw( 5 ) << setfill( '0' ) << cnt_id << ".pcd";
+                pcd_file << "/home/cy/Projects/dataset/labeled_0628/xtion_pro_live_0628_" << setw( 5 ) << setfill( '0' ) << cnt_id << ".pcd";
                 io::savePCDFile<PointT> (pcd_file.str(), *cloud, true);
                 pcd_file.str("");
-                pcd_file << "/home/cy/Projects/dataset/labeled/xtion_pro_live_0627_" << setw( 5 ) << setfill( '0' ) << cnt_id << ".tra";
+                pcd_file << "/home/cy/Projects/dataset/labeled_0628/xtion_pro_live_0628_" << setw( 5 ) << setfill( '0' ) << cnt_id << ".tra";
                 fstream fs(pcd_file.str(), ios::out | ios::binary);
                 fs.write((char*)trans.data(), 4 * 4 * sizeof(float));
                 cnt_id++;
