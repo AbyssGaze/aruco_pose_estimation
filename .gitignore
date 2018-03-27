@@ -34,10 +34,6 @@
 *.~
 #floder
 build/*
-html/*
-<<<<<<< HEAD
 cmake*
 idea/*
-=======
-.idea/*
->>>>>>> 473ffbf344c42b45f05c4a5dedd87a0322e1c3ea
+*autosave

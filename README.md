@@ -65,8 +65,5 @@ Building dataset of multiview segmentation using supervoxel segmentation and clo
 ./seg_label ../input_label.txt
 ```
 **input_label.txt** first row is the start image index
-<<<<<<< HEAD
 
 # Detail information you can find in html/index.html
-=======
->>>>>>> 473ffbf344c42b45f05c4a5dedd87a0322e1c3ea
