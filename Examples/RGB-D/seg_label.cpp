@@ -180,7 +180,7 @@ void superVoxleSeg(PointCloud<PointT>::Ptr &cloud, PointCloud<PointXYZL>::Ptr &s
 
     PointCloud<PointXYZRGB>::Ptr cloud_copy(new PointCloud<PointXYZRGB>);
     copyPointCloud(*cloud, *cloud_copy);
-    ///超体像素分割///
+    ///supervoxel segmentation///
     console::print_highlight ("Extracting supervoxels!\n");
     super.setInputCloud (cloud_copy);
     super.extract (supervoxel_clusters);
@@ -344,29 +344,6 @@ int main(int argc, char** argv){
 //        vis->spin ();
     }
 
-    //对model进行处理
-//    StatisticalOutlierRemoval<PointT> sor;
-//    sor.setInputCloud (model);
-//    sor.setMeanK (20);
-//    sor.setStddevMulThresh (1.4);
-//    sor.filter (*model);
-//    //
-//    cout<<"moving least square begins ..."<<endl;
-
-//    search::KdTree<PointT>::Ptr tree (new search::KdTree<PointT>);
-//    // Output has the PointNormal type in order to store the normals calculated by MLS
-//    MovingLeastSquares<PointT, PointT> mls;
-//    mls.setComputeNormals (true);
-//    mls.setInputCloud (merged);
-//    mls.setPolynomialFit (true);
-//    mls.setSearchMethod (tree);
-//    mls.setSearchRadius (0.01);
-//    mls.process (*model);
-    //对model进行降采样
-//    VoxelGrid<PointT> sor;
-//    sor.setLeafSize(0.001f, 0.001f, 0.001f);
-//    sor.setInputCloud(model);
-//    sor.filter(*model);
 
     while(labelCloud >> labelCloudFileName && labelPose >> labelPoseFileName){
         //读取待标记的点云
@@ -378,15 +355,12 @@ int main(int argc, char** argv){
         Eigen::Matrix4f trans_inverse = trans.inverse();
 
         transformPointCloud (*cloud, *cloud, trans);
-        //原始位姿的逆
 
-        //完成点云的滤波
         cloudPassFilter(cloud);
 
-        //将点云从artag板的视角恢复到相机的视角
+        //convert cloud view point from artag coordinate to camera coordinate
         transformPointCloud (*cloud, *cloud, trans_inverse);
         transformPointCloud (*model, *model, trans_inverse);
-//        ICPtrans(cloud, model, trans_inverse);
 
         vis->removeAllPointClouds();
         vis->addPointCloud (cloud, ColorHandlerT (cloud, 0.0, 255.0, 0.0), "scene");
@@ -409,14 +383,7 @@ int main(int argc, char** argv){
         vis->setPointCloudRenderingProperties (visualization::PCL_VISUALIZER_OPACITY,0.8, "labeled voxels");
 
         vis->spin ();
-//        cloudRegionGrowing(cloud);
-//        copyPointCloud(*cloud, *cloud_copy);
 
-//        vis->removeAllPointClouds();
-//        vis->addPointCloud (cloud_copy, "labeled voxels");
-//        vis->setPointCloudRenderingProperties (visualization::PCL_VISUALIZER_OPACITY,0.8, "labeled voxels");
-
-//        vis->spin ();
         //超体像素分割后，统计每个voxel中的点的label来完成标记
         PointCloud<PointXYZL>::Ptr cloud_seg(new PointCloud<PointXYZL>);
         superVoxleSeg(cloud, cloud_seg);

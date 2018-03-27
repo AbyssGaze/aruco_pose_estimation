@@ -19,6 +19,7 @@ using namespace cv;
 
 #define READ_TRANS(TRANS, NAME) {Eigen::Matrix4f tmp_trans; ifstream(NAME.c_str(), std::ifstream::in | ifstream::binary).read((char*)tmp_trans.data(), 4 * 4 * sizeof(float)); (TRANS) = tmp_trans;}
 
+//! camera instrincs
 double FOCAL_X = 558.341390;
 double FOCAL_Y = 558.387543;
 double CX = 314.763671;
@@ -47,7 +48,7 @@ int main(int argc, char **argv)
     stringstream pcd_file, pose_file;
 
     vis->addCoordinateSystem(0.2);
-    //从rgb图像中获取对应的特征点的3d和2d坐标
+    //get features 3d coordinate and 2d coordinate from rgb image
     index >> num;
     while (!index.eof ())
     {
@@ -68,7 +69,7 @@ int main(int argc, char **argv)
         name = file + ".png";
         depth_mat = imread(name, -1);
 
-        //产生mask区域
+        //generate mask regions
         string pose_name = file+".tra";
         Eigen::Matrix4f trans, trans_inv;
         READ_TRANS(trans, pose_name);
